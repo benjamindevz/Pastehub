@@ -16,6 +16,7 @@
             --grey: #64748b;
             --border: #1a1a22;
             --text-fall: #3a7bff;
+            --trail-color: rgba(58, 123, 255, 0.6);
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
@@ -24,9 +25,18 @@
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
             overflow-x: hidden;
-            cursor: crosshair;
+            cursor: none; /* Hide default cursor */
         }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        /* CURSOR TRAIL CANVAS */
+        #cursor-trail {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 9998;
+            pointer-events: none;
+        }
 
         /* BACKGROUND: "Paste.hub" TEXT FALLING SLOWLY */
         #text-canvas {
@@ -54,6 +64,8 @@
             letter-spacing: -3px;
             cursor: pointer;
             transition: all 0.4s;
+            position: relative;
+            z-index: 10;
         }
         .logo:hover {
             transform: scale(1.05) rotate(1deg);
@@ -267,26 +279,55 @@
             text-align: center;
             margin: 1.5rem 0;
         }
-        #paypal-button-basic, #paypal-button-premium {
-            margin: 0 auto;
-        }
 
-        /* UI Preview */
+        /* VIDEO PREVIEW — FULLSCREEN EMBED STYLE */
         .ui-preview {
             margin: 4rem 0;
             text-align: center;
+            position: relative;
+            z-index: 10;
         }
-        .ui-image {
+        .video-container {
+            position: relative;
             max-width: 100%;
-            height: auto;
             border-radius: 20px;
+            overflow: hidden;
             border: 2px solid var(--border);
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             transition: all 0.4s;
+            background: #000;
         }
-        .ui-image:hover {
+        .video-container:hover {
             transform: translateY(-10px);
             box-shadow: 0 30px 60px rgba(58,123,255,0.3);
+        }
+        .ui-video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .fullscreen-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.1);
         }
 
         /* Contact Section */
@@ -353,10 +394,14 @@
             .price { font-size: 2.5rem; }
             .price-card.premium { transform: scale(1); }
             .modal-content { padding: 2rem; }
+            .fullscreen-btn { width: 40px; height: 40px; font-size: 1rem; }
         }
     </style>
 </head>
 <body>
+
+    <!-- CURSOR TRAIL CANVAS -->
+    <canvas id="cursor-trail"></canvas>
 
     <!-- BACKGROUND: "Paste.hub" TEXT FALLING SLOWLY -->
     <canvas id="text-canvas"></canvas>
@@ -410,13 +455,21 @@
             </div>
         </div>
 
-        <!-- UI Preview -->
+        <!-- VIDEO PREVIEW — FULLSCREEN + AUDIO -->
         <section id="ui" class="ui-preview">
             <h2 style="text-align: center; margin-bottom: 2rem; background: linear-gradient(145deg, #3a7bff, #6a9fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Premium UI Preview</h2>
-            <img src="image.png" alt="Paste.hub Premium UI" class="ui-image">
+            <div class="video-container">
+                <video class="ui-video" id="preview-video" autoplay loop playsinline controls>
+                    <source src="vid.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="fullscreen-btn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i>
+                </div>
+            </div>
         </section>
 
-        <!-- Contact Section with Discord Button -->
+        <!-- Contact Section -->
         <section id="contact" class="contact-section">
             <h2>Need Help?</h2>
             <p>Join our Discord or DM <strong>@benjaminz</strong> for support.</p>
@@ -497,6 +550,92 @@
         animate();
     </script>
 
+    <!-- CURSOR TRAIL SCRIPT -->
+    <script>
+        const trailCanvas = document.getElementById('cursor-trail');
+        const tctx = trailCanvas.getContext('2d');
+        trailCanvas.width = window.innerWidth;
+        trailCanvas.height = window.innerHeight;
+
+        let mouseX = 0, mouseY = 0;
+        const particles = [];
+        const MAX_PARTICLES = 30;
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 4 + 2;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.life = 20;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life--;
+            }
+            draw() {
+                tctx.beginPath();
+                tctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                tctx.fillStyle = `rgba(58, 123, 255, ${this.life / 20})`;
+                tctx.fill();
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (particles.length < MAX_PARTICLES) {
+                particles.push(new Particle(mouseX, mouseY));
+            }
+        });
+
+        function animateTrail() {
+            tctx.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animateTrail);
+        }
+
+        window.addEventListener('resize', () => {
+            trailCanvas.width = window.innerWidth;
+            trailCanvas.height = window.innerHeight;
+        });
+
+        animateTrail();
+    </script>
+
+    <!-- FULLSCREEN VIDEO FUNCTION -->
+    <script>
+        const video = document.getElementById('preview-video');
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                video.parentElement.requestFullscreen().catch(err => {
+                    alert(`Error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Update fullscreen button icon
+        document.addEventListener('fullscreenchange', () => {
+            const btn = document.querySelector('.fullscreen-btn i');
+            if (document.fullscreenElement) {
+                btn.classList.remove('fa-expand');
+                btn.classList.add('fa-compress');
+            } else {
+                btn.classList.remove('fa-compress');
+                btn.classList.add('fa-expand');
+            }
+        });
+    </script>
+
     <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
 
@@ -536,7 +675,6 @@
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
 
-            // Render PayPal button
             setTimeout(() => {
                 paypal.Buttons({
                     createOrder: function(data, actions) {
@@ -574,12 +712,10 @@
             if (e.target === modal) closeModal();
         });
 
-        // Fake key generator
         function generateKey() {
             return 'PH-' + Math.random().toString(36).substr(2, 9).toUpperCase() + '-' + Date.now().toString(36).substr(-4).toUpperCase();
         }
 
-        // Simulate email send
         function sendKeyEmail(email, key, tier) {
             console.log(`Sending key ${key} to ${email} for ${tier} tier`);
         }
