@@ -70,32 +70,49 @@
         }
         .buy-btn:hover { transform:translateY(-3px); }
 
-        /* VIDEO PREVIEW */
+        /* VIDEO EMBED – FIXED & MODERN */
         .video-section {
             margin:4rem 0; text-align:center;
         }
         .video-wrapper {
-            position:relative; width:100%; aspect-ratio:16/9;
-            border-radius:20px; overflow:hidden; border:2px solid var(--border);
-            box-shadow:0 20px 40px rgba(0,0,0,.4); background:#000;
-            transition:all .4s;
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 */
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,.4);
+            background: #000;
+            transition: all .4s;
         }
         .video-wrapper:hover {
-            transform:translateY(-10px);
-            box-shadow:0 30px 60px rgba(58,123,255,.3);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(58,123,255,.3);
         }
         .video-wrapper iframe {
-            position:absolute; inset:0; width:100%; height:100%; border:none;
+            position: absolute;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            border: none;
+            overflow: hidden;
         }
         .fullscreen-btn {
-            position:absolute; bottom:15px; right:15px; width:45px; height:45px;
-            background:rgba(0,0,0,.6); border:2px solid rgba(255,255,255,.2);
-            border-radius:50%; display:flex; align-items:center; justify-content:center;
-            color:#fff; font-size:1.2rem; cursor:pointer; transition:all .3s;
-            backdrop-filter:blur(4px);
+            position: absolute;
+            bottom: 15px; right: 15px;
+            width: 45px; height: 45px;
+            background: rgba(0,0,0,.6);
+            border: 2px solid rgba(255,255,255,.2);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 1.2rem;
+            cursor: pointer; transition: all .3s;
+            backdrop-filter: blur(4px);
         }
         .fullscreen-btn:hover {
-            background:var(--accent); border-color:var(--accent); transform:scale(1.1);
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.1);
         }
 
         /* MODAL */
@@ -212,14 +229,14 @@
             <button class="buy-btn premium" onclick="openModal('premium')">Buy Premium — $9.99</button>
         </div>
 
-        <!-- VIDEO PREVIEW -->
+        <!-- VIDEO PREVIEW – NEW VIDEO -->
         <section class="video-section">
             <h2 style="text-align:center;margin-bottom:1.5rem;background:linear-gradient(145deg,#3a7bff,#6a9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
                 Premium UI Preview
             </h2>
             <div class="video-wrapper">
                 <iframe
-                    src="https://streamable.com/e/czob6h"
+                    src="https://streamable.com/e/1duvms"
                     title="Paste.hub Premium UI Preview"
                     allow="fullscreen"
                     allowfullscreen>
