@@ -70,7 +70,7 @@
         }
         .buy-btn:hover { transform:translateY(-3px); }
 
-        /* VIDEO EMBED – FIXED & MODERN */
+        /* VIDEO EMBED */
         .video-section {
             margin:4rem 0; text-align:center;
         }
@@ -78,7 +78,7 @@
             position: relative;
             width: 100%;
             height: 0;
-            padding-bottom: 56.25%; /* 16:9 */
+            padding-bottom: 56.25%;
             border-radius: 20px;
             overflow: hidden;
             border: 2px solid var(--border);
@@ -95,7 +95,6 @@
             left: 0; top: 0;
             width: 100%; height: 100%;
             border: none;
-            overflow: hidden;
         }
         .fullscreen-btn {
             position: absolute;
@@ -148,26 +147,36 @@
         }
         .modal-features li::before {
             position:absolute; left:0; font-family:"Font Awesome 6 Free"; font-weight:900;
-            color:var(--accent); content:"\f00c"; /* check */
+            color:var(--accent); content:"\f00c";
         }
         .modal-features li.disabled {
             color:var(--grey); text-decoration:line-through;
         }
         .modal-features li.disabled::before {
-            content:"\f00d"; /* cross */
-            color:#ff6b6b;
+            content:"\f00d"; color:#ff6b6b;
         }
 
-        /* EMAIL INPUT */
-        .email-input {
-            width:100%; padding:.9rem 1.2rem; margin:1rem 0;
+        /* INPUTS */
+        .form-group {
+            margin:1rem 0;
+        }
+        .form-input {
+            width:100%; padding:.9rem 1.2rem;
             background:var(--card); border:2px solid var(--border); border-radius:12px;
             color:var(--text); font-size:1rem; outline:none;
             transition:border .3s;
         }
-        .email-input:focus { border-color:var(--accent); }
-        .email-input::placeholder { color:var(--grey); opacity:.7; }
-        .email-error { color:#ff6b6b; font-size:.85rem; margin-top:.3rem; display:none; }
+        .form-input:focus { border-color:var(--accent); }
+        .form-input::placeholder { color:var(--grey); opacity:.7; }
+        .form-error { color:#ff6b6b; font-size:.85rem; margin-top:.3rem; display:none; }
+        .coupon-success { color:#4ade80; font-size:.9rem; margin-top:.3rem; display:none; }
+
+        .price-display {
+            font-size:1.4rem; font-weight:700; margin:1rem 0; text-align:center;
+        }
+        .original-price { text-decoration:line-through; color:var(--grey); font-size:1rem; }
+        .discounted-price { color:var(--accent); }
+
         .paypal-container { text-align:center; margin:1.5rem 0; opacity:0; transition:opacity .4s; }
         .paypal-container.visible { opacity:1; }
 
@@ -202,9 +211,6 @@
             .modal-content{padding:2rem;}
             .fullscreen-btn{width:40px;height:40px;font-size:1rem;}
         }
-        @media (prefers-reduced-motion:reduce){
-            * { animation-duration:.01ms !important; transition-duration:.01ms !important; }
-        }
     </style>
 </head>
 <body>
@@ -229,7 +235,7 @@
             <button class="buy-btn premium" onclick="openModal('premium')">Buy Premium — $9.99</button>
         </div>
 
-        <!-- VIDEO PREVIEW – NEW VIDEO -->
+        <!-- VIDEO PREVIEW -->
         <section class="video-section">
             <h2 style="text-align:center;margin-bottom:1.5rem;background:linear-gradient(145deg,#3a7bff,#6a9fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
                 Premium UI Preview
@@ -255,7 +261,7 @@
             </div>
         </div>
 
-        <!-- Footer with Discord -->
+        <!-- Footer -->
         <footer>
             <div class="footer-glow"></div>
             <p>© 2025 Paste.hub • Made by benjaminz</p>
@@ -266,7 +272,7 @@
 
     </div>
 
-    <!-- FALLING TEXT (Modern) -->
+    <!-- FALLING TEXT -->
     <script>
         const textCanvas = document.getElementById('text-canvas');
         const ctx = textCanvas.getContext('2d');
@@ -395,20 +401,32 @@
         });
     </script>
 
-    <!-- PAYPAL + EMAIL VALIDATION -->
+    <!-- COUPONS + PAYPAL -->
     <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
     <script>
+        // EASY COUPON MANAGEMENT
+        const COUPONS = {
+            "SAVE20": 20,
+            "FIRST50": 50,
+            "TEST": 100
+        };
+
         const modal = document.getElementById('modal');
         const body = document.getElementById('modal-body');
         let tier = '';
         let userEmail = '';
+        let discountPercent = 0;
+        let finalPrice = 0;
 
         function openModal(t) {
             tier = t;
             const isPrem = t === 'premium';
-            const price = isPrem ? '9.99' : '4.99';
+            const basePrice = isPrem ? 9.99 : 4.99;
             const title = isPrem ? 'Premium Tier' : 'Basic Tier';
             const item = isPrem ? 'Paste.hub External - Premium Lifetime' : 'Paste.hub External - Basic Lifetime';
+
+            discountPercent = 0;
+            finalPrice = basePrice;
 
             const feats = isPrem
                 ? ['Aimbot','Box ESP','Silent Aim','Skeleton ESP','Name ESP','Fly','Speed','Noclip','FOV Circle','Configs']
@@ -421,10 +439,23 @@
             });
 
             body.innerHTML = `
-                <div class="modal-title">${title} — $${price}</div>
-                <p style="text-align:center;color:var(--grey);margin-bottom:1rem;">Lifetime Access • Key sent to your email instantly</p>
-                <input type="email" class="email-input" id="user-email" placeholder="Enter your email" required />
-                <p class="email-error" id="email-error">Please enter a valid email.</p>
+                <div class="modal-title">${title}</div>
+                <div class="price-display">
+                    <span id="original-price">$ ${basePrice.toFixed(2)}</span>
+                    <span id="final-price" class="discounted-price">$ ${finalPrice.toFixed(2)}</span>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" class="form-input" id="user-email" placeholder="Your email" required />
+                    <p class="form-error" id="email-error">Please enter a valid email.</p>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-input" id="coupon-code" placeholder="Coupon code (optional)" />
+                    <p class="coupon-success" id="coupon-success"></p>
+                    <p class="form-error" id="coupon-error"></p>
+                </div>
+
                 <ul class="modal-features">${html}</ul>
                 <div class="paypal-container" id="paypal-${t}"></div>
                 <p style="text-align:center;font-size:.85rem;color:var(--grey);margin-top:1rem;">
@@ -436,35 +467,80 @@
             document.body.style.overflow = 'hidden';
 
             const emailInput = document.getElementById('user-email');
-            const errorMsg = document.getElementById('email-error');
+            const couponInput = document.getElementById('coupon-code');
+            const emailError = document.getElementById('email-error');
+            const couponError = document.getElementById('coupon-error');
+            const couponSuccess = document.getElementById('coupon-success');
+            const originalPriceEl = document.getElementById('original-price');
+            const finalPriceEl = document.getElementById('final-price');
             const paypalContainer = document.getElementById(`paypal-${t}`);
 
-            emailInput.addEventListener('input', () => {
-                if (emailInput.validity.valid) {
+            // Email validation
+            emailInput.addEventListener('input', validateForm);
+            couponInput.addEventListener('input', validateForm);
+
+            function validateForm() {
+                const emailValid = emailInput.validity.valid;
+                const couponCode = couponInput.value.trim().toUpperCase();
+
+                // Reset coupon
+                discountPercent = 0;
+                finalPrice = basePrice;
+                couponSuccess.style.display = 'none';
+                couponError.style.display = 'none';
+
+                if (emailValid) {
                     userEmail = emailInput.value;
-                    errorMsg.style.display = 'none';
+                    emailError.style.display = 'none';
+                } else {
+                    emailError.style.display = 'block';
+                }
+
+                // Apply coupon
+                if (couponCode && COUPONS[couponCode] !== undefined) {
+                    discountPercent = COUPONS[couponCode];
+                    finalPrice = basePrice * (1 - discountPercent / 100);
+                    finalPrice = Math.max(finalPrice, 0.01); // min 1 cent
+                    couponSuccess.textContent = `${discountPercent}% off applied!`;
+                    couponSuccess.style.display = 'block';
+                    originalPriceEl.style.textDecoration = 'line-through';
+                    originalPriceEl.style.color = 'var(--grey)';
+                } else if (couponCode && !COUPONS[couponCode]) {
+                    couponError.textContent = 'Invalid coupon';
+                    couponError.style.display = 'block';
+                }
+
+                finalPriceEl.textContent = `$ ${finalPrice.toFixed(2)}`;
+
+                // Show PayPal if email valid
+                if (emailValid) {
                     paypalContainer.classList.add('visible');
                     renderPayPal();
                 } else {
-                    errorMsg.style.display = 'block';
                     paypalContainer.classList.remove('visible');
                 }
-            });
+            }
 
             function renderPayPal() {
                 if (paypalContainer.children.length > 0) return;
                 paypal.Buttons({
                     createOrder: (data, actions) => actions.order.create({
-                        purchase_units: [{ amount: { value: price }, description: item }]
+                        purchase_units: [{
+                            amount: { value: finalPrice.toFixed(2) },
+                            description: `${item} (${discountPercent}% off)`
+                        }]
                     }),
                     onApprove: (data, actions) => actions.order.capture().then(det => {
-                        sendKey(userEmail, genKey(), tier);
+                        const key = genKey();
+                        sendKey(userEmail, key, tier, discountPercent);
                         alert(`Payment successful! Your key has been sent to ${userEmail}`);
                         closeModal();
                     }),
-                    onError: e => { console.error(e); alert('Payment failed. Please try again.'); }
+                    onError: e => { console.error(e); alert('Payment failed.'); }
                 }).render(`#paypal-${t}`);
             }
+
+            validateForm(); // initial
         }
 
         function closeModal() {
@@ -479,9 +555,9 @@
             return 'PH-' + Math.random().toString(36).substr(2,9).toUpperCase() + '-' + Date.now().toString(36).substr(-4).toUpperCase();
         }
 
-        function sendKey(email, key, tier) {
-            console.log(`Sending key ${key} to ${email} for ${tier} tier`);
-            // In production: send via secure backend
+        function sendKey(email, key, tier, discount) {
+            console.log(`[PURCHASE] ${email} bought ${tier} tier (Key: ${key}) - Discount: ${discount}%`);
+            // SEND EMAIL VIA BACKEND (e.g. Firebase, Node.js, etc.)
         }
     </script>
 </body>
